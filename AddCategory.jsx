@@ -1,6 +1,8 @@
-import React, {useState} from 'react';
+import React, {useState, useMemo, useEffect, useCallback} from 'react';
 import axios from '../axios';
 import { useNavigate } from 'react-router-dom';
+import { debounce } from 'lodash';
+import { FixedSizeList as List } from 'react-window';
 
 const AddCategory = () => {
     const [category, setCategory] = useState('');
@@ -46,6 +48,17 @@ const AddCategory = () => {
         .catch(err => console.log(err));
     };
 
+    const sortedCategories = useMemo(() => {
+        return [...category].sort((a, b) => a.name.localeCompare(b.name));
+    }, [category]);
+
+    const debouncedSearch = useCallback(
+        debounce((searchTerm) => {
+            handleSearchClick(searchTerm);
+        }, 300),
+        []
+    );
+
     return (
         <div className='d-flex justify-content-center align-items-center h-75'>
             <div className='p-3 rounded w-25 border'>
@@ -74,5 +87,20 @@ const AddCategory = () => {
         </div>
     );
 };
+
+class ErrorBoundary extends React.Component {
+  state = { hasError: false };
+
+  static getDerivedStateFromError(error) {
+    return { hasError: true };
+  }
+
+  render() {
+    if (this.state.hasError) {
+      return <h1>Something went wrong.</h1>;
+    }
+    return this.props.children;
+  }
+}
 
 export default AddCategory;
