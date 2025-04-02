@@ -104,43 +104,30 @@ const Employee = () => {
 
   const handleSearchClick = () => {
     if (!loading) {
-        setLoading(true);
-        
-        // Check if search is empty or contains only whitespace
-        if (!search || !search.trim()) {
-            // Reset all states to initial values
-            setEmployee([]);
-            setCurrentPage(0);
-            initialLoadDone.current = false;
-            setHasMore(true);
-            
-            // Clear localStorage
-            localStorage.removeItem('employeeData');
-            localStorage.setItem('currentPage', '0');
-            localStorage.setItem('hasMore', 'true');
-            localStorage.removeItem('searchQuery');
-            
-            // Load initial data
-            loadEmployees();
-            return;
-        }
-
-        // Proceed with search if there's a search term
-        axios.post(`/auth/employee/search?search=${search}`)
-            .then((response) => {
-                if (response.data.Status) {
-                    const searchResults = response.data.Result;
-                    setEmployee(searchResults);
-                    localStorage.setItem('employeeData', JSON.stringify(searchResults));
-                    setHasMore(false);
-                    localStorage.setItem('hasMore', 'false');
-                }
-            })
-            .catch((err) => {
-                console.log(err);
-                alert('Error occurred while searching');
-            })
-            .finally(() => setLoading(false));
+      setLoading(true);
+      
+      if (search.trim()) {
+        axios
+          .post(`/auth/employee/search?search=${search}`)
+          .then((response) => {
+            if (response.data.Status) {
+              const searchResults = response.data.Result;
+              setEmployee(searchResults);
+              localStorage.setItem('employeeData', JSON.stringify(searchResults));
+              setHasMore(false);
+              localStorage.setItem('hasMore', 'false');
+            }
+          })
+          .catch((err) => console.log(err))
+          .finally(() => setLoading(false));
+      } else {
+        setCurrentPage(0);
+        initialLoadDone.current = false;
+        setHasMore(true);
+        localStorage.setItem('currentPage', '0');
+        localStorage.setItem('hasMore', 'true');
+        loadEmployees();
+      }
     }
   };
 
@@ -292,12 +279,7 @@ const Employee = () => {
             placeholder="Search employee's by name..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            onKeyDown={(e) => {
-                if (e.key === 'Enter') {
-                    e.preventDefault();
-                    handleSearchClick();
-                }
-            }}
+            onKeyPress={(e) => e.key === 'Enter' && handleSearchClick()}
             style={tableStyles.searchBarTop}
           />
           <button 
