@@ -5,11 +5,16 @@ import { useNavigate } from 'react-router-dom';
 
 const AddCategory = () => {
 
-    const [category, setCategory] = useState();
+    const [category, setCategory] = useState('');
+    const [error, setError] = useState('');
     const navigate = useNavigate();
 
     const handleSubmit = (e) => {
         e.preventDefault()
+        if (!category || !category.trim()) {
+            setError('Category name is required');
+            return;
+        }
         axios.post('/auth/add_category', {category})
         .then(result => {
             if(result.data.Status) {
@@ -21,6 +26,15 @@ const AddCategory = () => {
         .catch(err => console.log(err))
     }
 
+    const handleCategoryChange = (e) => {
+        const value = e.target.value;
+        // Only allow letters and spaces
+        if (/^[A-Za-z\s]*$/.test(value)) {
+            setCategory(value);
+            setError('');
+        }
+    }
+
   return (
     <div className='d-flex justify-content-center align-items-center h-75'>
         <div className='p-3 rounded w-25 border'>
@@ -29,7 +43,10 @@ const AddCategory = () => {
                 <div className='mb-3'>
                     <label htmlFor="category"><strong>Category:</strong></label>
                     <input type="text" name='category' placeholder='Enter Category'
-                    onChange={(e) => setCategory(e.target.value)} className='form-control rounded-0'/>
+                    value={category}
+                    onChange={handleCategoryChange}
+                    className='form-control rounded-0'/>
+                    {error && <div className="text-danger mt-1">{error}</div>}
                 </div>
                 <button className='btn btn-success w-100 rounded-0 mb-2'><b>Add Category</b></button>
             </form>
